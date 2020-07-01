@@ -58,6 +58,13 @@ def get_file(id):
                     attachment_filename=file_data.name, 
                     mimetype=file_data.file_type)
 
+@app.route("/file/delete/<id>", methods=["DELETE"])
+def delete_file(id):
+    file_data = db.session.query(File).filter(File.id == id).first()
+    db.session.delete(file_data)
+    db.session.commit()
+    return jsonify("File Deleted Successfully")
+
 
 if __name__ == "__main__":
     app.run(debug=True)
