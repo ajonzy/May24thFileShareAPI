@@ -97,6 +97,10 @@ def create_user():
     username = post_data.get("username")
     password = post_data.get("password")
 
+    username_check = db.session.query(User.username).filter(User.username == username).first()
+    if username_check is not None:
+        return jsonify("Username Taken")
+
     hashed_password = bcrypt.generate_password_hash(password).decode("utf8")
 
     record = User(username, hashed_password)
