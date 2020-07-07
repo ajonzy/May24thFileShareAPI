@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from flask_cors import CORS
 from flask_heroku import Heroku
+from flask_bcrypt import Bcrypt
 import io
 
 app = Flask(__name__)
@@ -13,6 +14,7 @@ ma = Marshmallow(app)
 
 heroku = Heroku(app)
 CORS(app)
+bcrypt = Bcrypt(app)
 
 
 class File(db.Model):
@@ -95,7 +97,9 @@ def create_user():
     username = post_data.get("username")
     password = post_data.get("password")
 
-    record = User(username, password)
+    hashed_password = bcrypt.generate_password_hash(password).decode("utf8")
+
+    record = User(username, hashed_password)
     db.session.add(record)
     db.session.commit()
 
@@ -120,9 +124,14 @@ def verify_user():
     username = post_data.get("username")
     password = post_data.get("password")
 
-    stored_password = db.session.query(User.password).filter(User.username == username).first()[0]
+    stored_password = db.session.query(User.password).filter(User.username == username).first()
 
-    if stored_password is None or stored_password != password:
+    if stored_password is None:
+        return jsonify("User NOT Verified")
+
+    valid_password_check = bcrypt.check_password_hash(stored_password[0], password)
+
+    if valid_password_check == False:
         return jsonify("User NOT Verified")
 
     return jsonify("User Verified")
