@@ -111,6 +111,23 @@ def get_user_by_id(id):
     user = db.session.query(User).filter(User.id == id).first()
     return jsonify(user_schema.dump(user))
 
+@app.route("/user/verification", methods=["POST"])
+def verify_user():
+    if request.content_type != "application/json":
+        return jsonify("Error: Data must be sent as JSON")
+
+    post_data = request.get_json()
+    username = post_data.get("username")
+    password = post_data.get("password")
+
+    stored_password = db.session.query(User.password).filter(User.username == username).first()[0]
+
+    if stored_password is None or stored_password != password:
+        return jsonify("User NOT Verified")
+
+    return jsonify("User Verified")
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)
